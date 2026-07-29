@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>CULVERTS · Dashboard</title>
+
+    <!-- 🔥 PROXY INJECTOR - DIRECT HTML -->
+    <script>
+        (function () {
+            console.log('🔄 PROXY INJECTOR STARTED...');
+            const PROXY_SERVER = 'http://localhost:8000';
+            let proxyActive = false;
+
+            async function checkProxy() {
+                try {
+                    const response = await fetch(PROXY_SERVER + '/proxy.html', {
+                        method: 'GET',
+                        mode: 'cors'
+                    });
+                    if (response.ok) {
+                        console.log('✅ Proxy available!');
+                        proxyActive = true;
+                        return true;
+                    }
+                } catch (e) {
+                    console.log('⚠️ Proxy not available');
+                }
+                return false;
+            }
+
+            function injectFunctions() {
+                console.log('🔄 Injecting proxy functions...');
+
+                window.getImagePath = function (path) {
+                    if (!path || path.trim() === '') return null;
+                    let cleanPath = path.trim();
+
+                    if (cleanPath.startsWith('http://') || cleanPath.startsWith('https://')) {
+                        return cleanPath;
+                    }
+
+                    if (cleanPath.startsWith('\\\\')) {
+                        return PROXY_SERVER + '/proxy-image?file=' + encodeURIComponent(cleanPath);
+                    }
+
+                    if (cleanPath.startsWith('/efap-ss/')) {
+                        return PROXY_SERVER + cleanPath;
+                    }
+
+                    return cleanPath;
+                };
+                console.log('✅ getImagePath injected');
+
+                window.showImage = function (imgSrc, label) {
+                    const modal = document.getElementById('imageModal');
+                    const img = document.getElementById('modalImage');
+                    const lbl = document.getElementById('modalLabel');
+
+                    if (imgSrc && imgSrc.trim() !== '') {
+                        let path = imgSrc.trim();
+
+                        if (path.startsWith('\\\\')) {
+                            path = PROXY_SERVER + '/proxy-image?file=' + encodeURIComponent(path);
+                        } else if (path.startsWith('/efap-ss/')) {
+                            path = PROXY_SERVER + path;
+                        }
+
+                        img.src = path;
+                        lbl.textContent = label || 'Image';
+                        modal.classList.add('show');
+                    }
+                };
+                console.log('✅ showImage injected');
+
+                setTimeout(function () {
+                    console.log('🔄 Updating existing images...');
+                    document.querySelectorAll('img').forEach(function (img) {
+                        let src = img.getAttribute('src');
+                        if (src && src.startsWith('/efap-ss/')) {
+                            img.src = PROXY_SERVER + src;
+                        }
+                    });
+                }, 500);
+            }
+
+            checkProxy().then(function (available) {
+                if (available) {
+                    injectFunctions();
+                } else {
+                    console.log('⚠️ Proxy not available, using default');
+                }
+            });
+
+        })();
+    </script>
+
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css" />
+
+    <!-- noUiSlider -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/noUiSlider/15.7.1/nouislider.min.css" />
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
+
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="style.css" />
+</head>
+
+<body>
+
+    <!-- ===== HEADER ===== -->
+    <div class="dashboard-header">
+        <h1><i class="fas fa-water"></i> CULVERTS</h1>
+        <div class="header-stats">
+            <span><i class="fas fa-map-pin"></i> <strong id="pointCount">0</strong></span>
+            <span><i class="fas fa-road"></i> <strong id="districtCount">0</strong></span>
+            <span><i class="fas fa-clock"></i> <strong id="loadTime">--</strong></span>
+            <span><i class="fas fa-filter"></i> <strong id="filteredCount">0</strong></span>
+        </div>
+        <a href="index.html" class="btn-back" title="Back to Main">
+            <i class="fas fa-arrow-left"></i> Back
+        </a>
+    </div>
+
+    <!-- ===== FILTER BAR ===== -->
+    <div class="filter-bar" id="filterBar">
+        <div class="filter-group">
+            <label><i class="fas fa-city"></i> District</label>
+            <select id="filterDistrict">
+                <option value="">All</option>
+            </select>
+        </div>
+        <div class="filter-group">
+            <label><i class="fas fa-industry"></i> Construction</label>
+            <select id="filterConstruction">
+                <option value="">All</option>
+            </select>
+        </div>
+        <div class="filter-group slider-group">
+            <label><i class="fas fa-ruler"></i> Length</label>
+            <div class="slider-container" id="lengthSlider"></div>
+            <span class="slider-value" id="lengthValue">0 - 0</span>
+        </div>
+        <div class="filter-group slider-group">
+            <label><i class="fas fa-layer-group"></i> Spans</label>
+            <div class="slider-container" id="spanSlider"></div>
+            <span class="slider-value" id="spanValue">0 - 0</span>
+        </div>
+        <div class="filter-group slider-group">
+            <label><i class="fas fa-arrows-alt-h"></i> Width</label>
+            <div class="slider-container" id="widthSlider"></div>
+            <span class="slider-value" id="widthValue">0 - 0</span>
+        </div>
+        <button class="btn-reset" id="resetFilters">Reset</button>
+        <span class="filter-count" id="filterCountDisplay">0</span>
+    </div>
+
+    <!-- ===== MAIN ===== -->
+    <div class="main-container">
+        <!-- LEFT PANEL -->
+        <div class="left-panel" id="leftPanel">
+            <!-- STATS BOX -->
+            <div class="stats-box">
+                <div class="stats-title"><i class="fas fa-chart-bar"></i> CULVERTS</div>
+                <div class="stats-number" id="statsTotalCulverts">0</div>
+                <div class="stats-sub">Total culverts</div>
+                <div class="stats-divider"></div>
+                <div class="stats-row">
+                    <span><i class="fas fa-city"></i> Districts</span>
+                    <span id="statsDistricts">0</span>
+                </div>
+                <div class="stats-row">
+                    <span><i class="fas fa-filter"></i> Filtered</span>
+                    <span id="statsFiltered">0</span>
+                </div>
+            </div>
+
+            <!-- DAMAGE FILTERS -->
+            <div class="section-title" style="margin-top:8px;">
+                <i class="fas fa-bolt"></i> FILTER BY DAMAGE
+            </div>
+            <div class="sub-text">(based on current filters)</div>
+            <button class="damage-btn" data-damage="Slab">Slab <span class="badge" id="badgeSlab">0</span></button>
+            <button class="damage-btn" data-damage="Side Wall">Side <span class="badge"
+                    id="badgeSideWall">0</span></button>
+            <button class="damage-btn" data-damage="Wing Wall">Wing <span class="badge"
+                    id="badgeWingWall">0</span></button>
+            <button class="damage-btn" data-damage="Parapet">Parapet <span class="badge"
+                    id="badgeParapet">0</span></button>
+            <button class="damage-btn" data-damage="Other">Other <span class="badge" id="badgeOther">0</span></button>
+            <button class="damage-btn" id="clearDamageFilter"
+                style="border-color:#ef4444;color:#ef4444;margin-top:4px;font-size:0.6rem;">Clear</button>
+
+            <!-- SELECTED CULVERT -->
+            <div class="section-title" style="margin-top:8px;border-top:2px solid #e2e8f0;padding-top:8px;">
+                <i class="fas fa-info-circle"></i> SELECTED CULVERT
+            </div>
+            <div id="selectedCulvertName" style="font-size:0.6rem;color:#1a3f62;font-weight:600;margin-bottom:4px;">
+                Click a marker</div>
+            <div id="selectedCulvertDamages">
+                <div style="font-size:0.55rem;color:#94a3b8;text-align:center;padding:10px 0;font-style:italic;">
+                    👆 Select a culvert to view damages
+                </div>
+            </div>
+        </div>
+
+        <!-- MAP -->
+        <div id="map">
+            <div class="loading-bar" id="loadingBar"></div>
+            <div class="progress-text" id="progressText">⏳</div>
+            <div id="errorContainer"></div>
+        </div>
+
+        <!-- RIGHT PANEL -->
+        <div class="right-panel" id="rightPanel">
+            <div class="panel-title"><i class="fas fa-images"></i> CULVERT IMAGES</div>
+            <div id="imageContent"></div>
+        </div>
+    </div>
+
+    <!-- ===== MODALS ===== -->
+    <!-- Image Modal -->
+    <div class="image-modal" id="imageModal">
+        <button class="close-btn" id="closeModal">&times;</button>
+        <img id="modalImage" src="" alt="Image" />
+        <div class="img-label" id="modalLabel">Image</div>
+    </div>
+
+    <!-- Damage Detail Modal -->
+    <div class="damage-modal" id="damageModal">
+        <div class="damage-modal-content" id="damageModalContent"></div>
+    </div>
+
+    <!-- ===== SCRIPTS ===== -->
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/noUiSlider/15.7.1/nouislider.min.js"></script>
+
+    <!-- Custom JavaScript -->
+    <script src="script.js"></script>
+</body>
+
+</html>

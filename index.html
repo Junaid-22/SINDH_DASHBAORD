@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>STRUCTURES · Dashboard</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Roboto, sans-serif;
+        }
+        body {
+            background: linear-gradient(145deg, #0b2a4a, #1a3f62);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            overflow: hidden;
+        }
+        .container {
+            text-align: center;
+            padding: 40px;
+        }
+        h1 {
+            color: white;
+            font-size: 2.8rem;
+            margin-bottom: 10px;
+            letter-spacing: 3px;
+        }
+        h1 i {
+            color: #8fcbff;
+        }
+        .sub-title {
+            color: #8fcbff;
+            font-size: 1.1rem;
+            margin-bottom: 50px;
+            opacity: 0.8;
+            letter-spacing: 1px;
+        }
+        .cards {
+            display: flex;
+            gap: 50px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        .card {
+            background: white;
+            border-radius: 20px;
+            padding: 50px 60px;
+            text-align: center;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            transition: all 0.3s ease;
+            cursor: pointer;
+            min-width: 250px;
+            border: 3px solid transparent;
+            text-decoration: none;
+            color: #1a3f62;
+            position: relative;
+            overflow: hidden;
+        }
+        .card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            opacity: 0.05;
+            transition: all 0.3s ease;
+        }
+        .card:hover {
+            transform: translateY(-12px);
+            border-color: #8fcbff;
+            box-shadow: 0 30px 80px rgba(0,0,0,0.4);
+        }
+        .card:hover::before {
+            opacity: 0.1;
+        }
+        .card i {
+            font-size: 4.5rem;
+            margin-bottom: 18px;
+            display: block;
+        }
+        .card h2 {
+            font-size: 1.6rem;
+            font-weight: 700;
+            color: #1a3f62;
+            letter-spacing: 1px;
+        }
+        .card p {
+            color: #64748b;
+            font-size: 0.9rem;
+            margin-top: 6px;
+        }
+        .card .badge {
+            background: #e2e8f0;
+            padding: 3px 14px;
+            border-radius: 20px;
+            font-size: 0.7rem;
+            color: #1a3f62;
+            display: inline-block;
+            margin-top: 10px;
+            font-weight: 600;
+        }
+        .card-culvert {
+            border-left: 6px solid #1f6da0;
+        }
+        .card-culvert i {
+            color: #1f6da0;
+        }
+        .card-culvert:hover {
+            border-color: #1f6da0;
+        }
+        .card-bridge {
+            border-left: 6px solid #b45309;
+        }
+        .card-bridge i {
+            color: #b45309;
+        }
+        .card-bridge:hover {
+            border-color: #b45309;
+        }
+        .card .count {
+            font-size: 0.7rem;
+            color: #94a3b8;
+            margin-top: 4px;
+        }
+        .footer {
+            color: rgba(255,255,255,0.3);
+            font-size: 0.7rem;
+            margin-top: 50px;
+            letter-spacing: 1px;
+        }
+        @media (max-width: 650px) {
+            h1 { font-size: 2rem; }
+            .cards { gap: 20px; }
+            .card { padding: 30px 40px; min-width: 180px; }
+            .card i { font-size: 3rem; }
+            .card h2 { font-size: 1.2rem; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1><i class="fas fa-water"></i> STRUCTURES</h1>
+        <p class="sub-title">Select a structure type to view dashboard</p>
+        
+        <div class="cards">
+            <!-- CULVERTS Card -->
+            <a href="index_culvert.html" class="card card-culvert">
+                <i class="fas fa-chevron-circle-down"></i>
+                <h2>CULVERTS</h2>
+                <p>View culvert inventory</p>
+                <span class="badge">11,000+ Points</span>
+                <div class="count">📍 Click to open</div>
+            </a>
+            
+            <!-- BRIDGES Card - FIXED -->
+            <a href="Bridges.html" class="card card-bridge">
+                <i class="fas fa-archway"></i>  <!-- ✅ ARCHWAY ICON -->
+                <h2>BRIDGES</h2>
+                <p>View bridge inventory</p>
+                <span class="badge">Bridge Dashboard</span>
+                <div class="count">📍 Click to open</div>
+            </a>
+        </div>
+        
+        <div class="footer">⚡ Select a dashboard to continue</div>
+    </div>
+</body>
+</html>
