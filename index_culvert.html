@@ -6,12 +6,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>CULVERTS · Dashboard</title>
 
-    <!-- 🔥 PROXY INJECTOR - DIRECT HTML -->
+    <!-- 🔥 PROXY INJECTOR - DIRECT HTML (UPDATED) -->
     <script>
         (function () {
             console.log('🔄 PROXY INJECTOR STARTED...');
             const PROXY_SERVER = 'http://localhost:8000';
-            let proxyActive = false;
 
             async function checkProxy() {
                 try {
@@ -21,12 +20,14 @@
                     });
                     if (response.ok) {
                         console.log('✅ Proxy available!');
-                        proxyActive = true;
+                        window.proxyActive = true;
+                        window.PROXY_SERVER = PROXY_SERVER;
                         return true;
                     }
                 } catch (e) {
                     console.log('⚠️ Proxy not available');
                 }
+                window.proxyActive = false;
                 return false;
             }
 
@@ -41,12 +42,13 @@
                         return cleanPath;
                     }
 
-                    if (cleanPath.startsWith('\\\\')) {
-                        return PROXY_SERVER + '/proxy-image?file=' + encodeURIComponent(cleanPath);
-                    }
-
-                    if (cleanPath.startsWith('/efap-ss/')) {
-                        return PROXY_SERVER + cleanPath;
+                    if (window.proxyActive) {
+                        if (cleanPath.startsWith('\\\\')) {
+                            return PROXY_SERVER + '/proxy-image?file=' + encodeURIComponent(cleanPath);
+                        }
+                        if (cleanPath.startsWith('/efap-ss/')) {
+                            return PROXY_SERVER + cleanPath;
+                        }
                     }
 
                     return cleanPath;
@@ -61,10 +63,23 @@
                     if (imgSrc && imgSrc.trim() !== '') {
                         let path = imgSrc.trim();
 
-                        if (path.startsWith('\\\\')) {
-                            path = PROXY_SERVER + '/proxy-image?file=' + encodeURIComponent(path);
-                        } else if (path.startsWith('/efap-ss/')) {
-                            path = PROXY_SERVER + path;
+                        // 🔥 HTML FILE SUPPORT
+                        const isHtml = path.toLowerCase().endsWith('.html');
+                        if (isHtml) {
+                            if (window.proxyActive && path.startsWith('/efap-ss/')) {
+                                window.open(PROXY_SERVER + path, '_blank');
+                            } else {
+                                window.open(path, '_blank');
+                            }
+                            return;
+                        }
+
+                        if (window.proxyActive) {
+                            if (path.startsWith('\\\\')) {
+                                path = PROXY_SERVER + '/proxy-image?file=' + encodeURIComponent(path);
+                            } else if (path.startsWith('/efap-ss/')) {
+                                path = PROXY_SERVER + path;
+                            }
                         }
 
                         img.src = path;
