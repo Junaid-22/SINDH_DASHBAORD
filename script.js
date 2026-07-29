@@ -130,9 +130,14 @@
 
         if (cleanPath === '' || cleanPath === 'null' || cleanPath === 'undefined') return null;
 
+        // 🔥 AGAR PATH PEHLE SE URL HAI
+        if (cleanPath.startsWith('http://') || cleanPath.startsWith('https://')) {
+            return cleanPath;
+        }
+
         // 🔥 AGAR PROXY AVAILABLE HAI TOH DIRECT PROXY URL
         if (window.proxyActive) {
-            const PROXY_SERVER = 'http://localhost:8000';
+            const PROXY_SERVER = window.PROXY_SERVER || 'http://localhost:8000';
 
             if (cleanPath.startsWith('\\\\')) {
                 return PROXY_SERVER + '/proxy-image?file=' + encodeURIComponent(cleanPath);
@@ -143,12 +148,12 @@
             }
         }
 
-        // Agar path already URL hai
-        if (cleanPath.startsWith('http://') || cleanPath.startsWith('https://')) {
+        // 🔥 RELATIVE PATH - Direct return
+        if (!cleanPath.startsWith('/') && !cleanPath.startsWith('\\\\')) {
             return cleanPath;
         }
 
-        // Python server ke through image serve karo
+        // 🔥 LOCAL NETWORK PATH (Fallback)
         if (cleanPath.startsWith('\\\\')) {
             let parts = cleanPath.split('\\');
             parts = parts.filter(p => p !== '');
@@ -463,12 +468,24 @@
                     return createHtmlCard(imgPath, label, culvertId);
                 } else {
                     const path = getImagePath(imgPath);
+
+                    // Agar path null hai toh placeholder
+                    if (!path) {
+                        return `
+                    <div class="image-card-large" style="background:#f8fafc;border:2px dashed #cbd5e1;min-height:80px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;padding:15px;border-radius:8px;width:100%;">
+                        <i class="fas fa-culvert" style="font-size:2rem;color:#cbd5e1;"></i>
+                        <span style="font-size:0.65rem;color:#94a3b8;font-weight:500;">${label} Not Available</span>
+                    </div>
+                `;
+                    }
+
                     return `
                 <div class="image-card-large" onclick="window.showImage('${path}','${label} Image - ${culvertId}')">
                     <div class="image-label">${label}</div>
                     <img src="${path}" alt="${label}" 
-                        onerror="this.style.display='none'; this.parentElement.innerHTML='<div class=\\'no-image\\' style=\\'display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px;min-height:80px;width:100%;\\'><i class=\\'fas fa-image\\' style=\\'font-size:2rem;color:#94a3b8;margin-bottom:6px;\\'></i><span style=\\'font-size:0.6rem;color:#94a3b8;font-weight:500;\\'>${label} Not Available</span></div>'">
-            
+                        onload="console.log('✅ Image loaded:', this.src)"
+                        onerror="this.style.display='none'; this.parentElement.innerHTML='<div class=\\'no-image\\' style=\\'display:flex;flex-direction:column;align-items:center;justify-content:center;padding:15px;min-height:80px;width:100%;\\'><i class=\\'fas fa-image\\' style=\\'font-size:2rem;color:#94a3b8;margin-bottom:6px;\\'></i><span style=\\'font-size:0.6rem;color:#94a3b8;font-weight:500;\\'>${label} Not Available</span></div>'">
+                    <div class="click-hint">Click to enlarge</div>
                 </div>
             `;
                 }
